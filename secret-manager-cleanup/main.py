@@ -4,6 +4,12 @@ from datetime import datetime, timezone, timedelta
 
 from arguments import get_args
 
+def compare_last_accessed_date(secret: dict, cutoff_date):
+    if 'LastAccessedDate' in secret:
+        return secret['LastAccessedDate'] < cutoff_date
+    
+    return False
+
 def main(args: dict):
     if(args.profile):
         boto3.setup_default_session(profile_name=args.profile)
@@ -14,7 +20,7 @@ def main(args: dict):
     paginator = sm_client.get_paginator('list_secrets')
     deleted_successfully = 0
     for page in paginator.paginate():
-        expired_secrets_arns = [secret['ARN'] for secret in filter(lambda secret: secret['LastAccessedDate'] < cutoff_date, page['SecretList'])]
+        expired_secrets_arns = [secret['ARN'] for secret in filter(lambda secret: compare_last_accessed_date(secret, cutoff_date), page['SecretList'])]
         
         #Unfortunatelly there is no batch delete operation for secrets manager so you have to call delete api for every secret
         for secret_arn in expired_secrets_arns:
