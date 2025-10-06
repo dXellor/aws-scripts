@@ -25,7 +25,7 @@ def download_from_s3(s3_uri: str) -> str:
 
 def write_batch_dynamo(table: str, batch_file_path: str):
     dynamo = boto3.client('dynamodb')
-    with open(batch_file_path) as bf:
+    with open(batch_file_path, encoding="utf-8") as bf:
         request_items = {
             table: [{"PutRequest": json.loads(item)} for item in json.load(bf)]
         }
@@ -51,7 +51,7 @@ def main(args: dict):
     batch_index = 1
     items_to_import = []
     for backup_file in get_files_by_extension(data_path, '.json'):
-        with open(f'{data_path}/{backup_file}') as f:
+        with open(f'{data_path}/{backup_file}', encoding="utf-8") as f:
             items_to_import += f.readlines()
 
         # Batch-Write API is restricted to 25 changes so we create temporary batches
